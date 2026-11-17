@@ -68,9 +68,15 @@ class GmailClient:
 
     def _deliver(self, msg: EmailMessage, recipients: list[str]) -> None:
         context = ssl.create_default_context()
-        with smtplib.SMTP_SSL(self.host, self.port, context=context) as server:
-            server.login(self.address, self.password)
-            server.send_message(msg)
+        if self.port == 465:
+            with smtplib.SMTP_SSL(self.host, self.port, context=context) as server:
+                server.login(self.address, self.password)
+                server.send_message(msg)
+        else:
+            with smtplib.SMTP(self.host, self.port, timeout=30) as server:
+                server.starttls(context=context)
+                server.login(self.address, self.password)
+                server.send_message(msg)
 
     @staticmethod
     def _as_list(value: str | list[str]) -> list[str]:
